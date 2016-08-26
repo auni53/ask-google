@@ -1,39 +1,40 @@
-import { get } from '../helpers/requests.js';
-import parse from '../helpers/xmlparse';
+import { get } from 'lib/requests.js';
+import parse from 'lib/xmlparse';
+import Promise from 'bluebird';
 import intersection from 'lodash/intersection';
 
 const getValue = e => e.value;
 
-/** 
+/**
  * Get list of routes for an agency.
- * 
+ *
  * @param  {string}  agency
- * @return {promise} routes 
- */ 
+ * @return {promise} routes
+ */
 export function getRoutes(agency) {
   const url = `http://webservices.nextbus.com/service/publicXMLFeed?command=routeList&a=${agency}`;
   const query = 'body/route/@tag';
   const getQuery = doc => parse(doc, query).map(getValue);
 
   return get(url)
-          .then(getQuery)
-        ;
+          .then(getQuery);
 }
 
-/** 
+/**
  * Get list of stops for a route.
- * 
- * @param  {string}  agency 
- * @param  {string}  route 
- * @param  {string}  direction 
- * @return {promise} times 
- */ 
+ *
+ * @param  {string}  agency
+ * @param  {string}  route
+ * @param  {string}  direction
+ * @return {promise} times
+ */
 export function getStops(agency, route) {
   const url = `http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=${agency}&r=${route}`;
-  const stopQuery = `body/route/stop/@stopId`;
-  const dirQuery = `body/route/direction/@name`;
+  const stopQuery = 'body/route/stop/@stopId';
+  const dirQuery = 'body/route/direction/@name';
   return get(url).then(doc => {
-      // Parse stop information for route
+    // Parse stop information for route
+    try {
       const stops = {}, directions = {};
       const stopList = parse(doc, stopQuery).map(getValue);
       stopList.forEach(stop => {
@@ -50,35 +51,46 @@ export function getStops(agency, route) {
         directions[dir] = tags.map(t => {
           t = t.replace(/\D/g, ''); // Remove non-numbers from tag
           let stopId = parse(doc, `body/route/stop[@tag="${t}"]/@stopId`)[0];
-          return stopId.value;
+          try {
+            return stopId.value;
+          } catch (e) {
+            // console.log(`No stop ID found for tag ${t} and route ${route}.`);
+            return;
+          }
         });
-      }); 
-      
+      });
+
       if ([...Object.keys(stops), ...Object.keys(directions)].length === 0) {
         return Promise.reject(Error(`${route} is not a ${agency} route.`));
       }
-      return { stops, directions };
-    });
+
+      return { route, stops, directions };
+    } catch (e) {
+      console.log(e.message);
+      console.log(url);
+      throw e;
+    }
+  });
 }
 
-/** 
+/**
  * Get next times for a stop, optional route/direction.
- * 
- * @param    {string}  agency 
+ *
+ * @param    {string}  agency
  * {
  *    @param {string} stop
  *   [@param {string} route]
  *   [@param {string} direction]
  * }
- * @return   {promise} times 
- */ 
+ * @return   {promise} times
+ */
 export function getTimes(agency, { stop, routeNum, direction }) {
   const url = `http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=${agency}&stopId=${stop}`;
   let times = [];
 
   return get(url).then(doc => {
-    const routeList = parse(doc, `/body/predictions/@routeTag`).map(getValue);
-  
+    const routeList = parse(doc, '/body/predictions/@routeTag').map(getValue);
+
     if (routeList.length === 0) {
       return Promise.reject(Error(`${stop} is not a ${agency} stop.`));
     }
@@ -97,6 +109,10 @@ export function getTimes(agency, { stop, routeNum, direction }) {
           label = parse(doc, inactiveQuery)[0].value.toLowerCase();
           times = null;
         }
+        label = (label.split(' ')
+                  .filter(token => token != route && token != '-')
+                    .join(' '));
+
       } catch (e) {
         console.log('--ERROR--');
         console.log(e);

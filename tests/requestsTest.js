@@ -1,4 +1,5 @@
-import { get } from '../src/helpers/requests.js';
+require('./index.js');
+import { get } from '../src/lib/requests.js';
 
 describe('function get() from requests', function() {
 

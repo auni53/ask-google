@@ -14,8 +14,3 @@ global.print = v => {
   console.log(v);
   return true;
 };
-
-// require('./hello');
-// require('./requestsTest');
-// require('./ttcTest');
-// require('./ClientTest');

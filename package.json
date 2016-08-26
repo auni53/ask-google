@@ -1,7 +1,7 @@
 {
-  "name": "alexa-transit",
+  "name": "alexa-google",
   "version": "1.0.0",
-  "description": "Alexa skill for transit times.",
+  "description": "Alexa skill for google times.",
   "main": "webpack.config.js",
   "dependencies": {
     "alexa-annotations": "^6.0.0",
@@ -16,9 +16,7 @@
     "lodash": "^4.13.1",
     "webpack": "^1.13.1",
     "xmldom": "^0.1.22",
-    "xpath": "0.0.23"
-  },
-  "devDependencies": {
+    "xpath": "0.0.23",
     "babel-plugin-syntax-flow": "^6.8.0",
     "babel-plugin-transform-flow-strip-types": "^6.8.0",
     "babel-polyfill": "^6.9.1",
@@ -38,12 +36,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/auni53/alexa-transit.git"
+    "url": "git+https://github.com/auni53/alexa-google.git"
   },
   "author": "Auni Ahsan",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/auni53/alexa-transit/issues"
+    "url": "https://github.com/auni53/alexa-google/issues"
   },
-  "homepage": "https://github.com/auni53/alexa-transit#readme"
+  "homepage": "https://github.com/auni53/alexa-google#readme"
 }
